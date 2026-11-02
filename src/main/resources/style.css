@@ -1,0 +1,227 @@
+/* =====================================================================
+   Glass UI — 半透明、圓角、淡邊框高光（類 iOS 玻璃質感）
+   ===================================================================== */
+.root {
+    -fx-font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei";
+    -fx-font-size: 13px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.app-root {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%,
+        rgba(44,58,122,0.84), rgba(16,22,50,0.90) 48%, rgba(62,26,110,0.84));
+    -fx-background-radius: 14;
+    -fx-border-color: linear-gradient(to bottom, rgba(255,255,255,0.40), rgba(255,255,255,0.10));
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+}
+.app-root:maximized { -fx-background-radius: 0; -fx-border-radius: 0; }
+
+/* ---------- Title bar ---------- */
+.title-bar {
+    -fx-background-color: rgba(255,255,255,0.05);
+    -fx-background-radius: 14 14 0 0;
+    -fx-min-height: 38; -fx-pref-height: 38; -fx-max-height: 38;
+    -fx-padding: 0 0 0 16;
+    -fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;
+}
+.app-root:maximized .title-bar { -fx-background-radius: 0; }
+.title-logo { -fx-text-fill: #7db4ff; -fx-font-size: 15px; }
+.title-text { -fx-text-fill: rgba(241,245,249,0.85); -fx-font-size: 12px; -fx-font-weight: bold; }
+.win-btn {
+    -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-color: transparent;
+    -fx-text-fill: rgba(241,245,249,0.85); -fx-font-family: "Segoe MDL2 Assets"; -fx-font-size: 10px;
+    -fx-min-width: 46; -fx-pref-width: 46; -fx-min-height: 38; -fx-pref-height: 38; -fx-padding: 0; -fx-cursor: default;
+}
+.win-btn:hover { -fx-background-color: rgba(255,255,255,0.12); }
+.win-btn-close { -fx-background-radius: 0 14 0 0; }
+.app-root:maximized .win-btn-close { -fx-background-radius: 0; }
+.win-btn-close:hover { -fx-background-color: #e81123; -fx-text-fill: white; }
+
+/* ---------- Glass surfaces ---------- */
+.glass-bar, .glass-card {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-background-radius: 16;
+    -fx-border-color: linear-gradient(to bottom, rgba(255,255,255,0.40), rgba(255,255,255,0.08));
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+}
+.toolbar { -fx-background-color: transparent; -fx-padding: 12 14 6 14; -fx-alignment: center-left; }
+.filter-bar { -fx-background-color: transparent; -fx-padding: 6 14 12 14; -fx-alignment: center-left; }
+.field-label { -fx-text-fill: rgba(226,232,240,0.65); }
+
+.pane-head { -fx-background-color: rgba(255,255,255,0.06); -fx-padding: 6 12; -fx-min-height: 32; }
+.pane-title { -fx-text-fill: rgba(226,232,240,0.80); -fx-font-size: 12px; -fx-font-weight: bold; }
+
+/* ---------- Buttons ---------- */
+.button {
+    -fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #f1f5f9;
+    -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.20); -fx-border-radius: 12;
+    -fx-padding: 6 16; -fx-cursor: hand;
+}
+.button:hover { -fx-background-color: rgba(255,255,255,0.18); }
+.button:pressed { -fx-background-color: rgba(255,255,255,0.05); }
+.primary-btn {
+    -fx-background-color: linear-gradient(to bottom, #6aa8ff, #2f6bf0);
+    -fx-border-color: rgba(255,255,255,0.35); -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 104;
+    -fx-effect: dropshadow(gaussian, rgba(47,107,240,0.55), 14, 0.15, 0, 3);
+}
+.primary-btn:hover { -fx-background-color: linear-gradient(to bottom, #82b8ff, #3f7bff); }
+.primary-btn.running {
+    -fx-background-color: linear-gradient(to bottom, #ffc46a, #ec8a1a);
+    -fx-effect: dropshadow(gaussian, rgba(236,138,26,0.55), 14, 0.15, 0, 3);
+}
+.primary-btn.running:hover { -fx-background-color: linear-gradient(to bottom, #ffd186, #f59a2f); }
+
+/* ---------- Inputs ---------- */
+.text-field {
+    -fx-background-color: rgba(255,255,255,0.09); -fx-text-fill: #f8fafc; -fx-prompt-text-fill: rgba(203,213,225,0.55);
+    -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.20); -fx-border-radius: 12; -fx-padding: 7 12;
+    -fx-highlight-fill: #f59e0b; -fx-highlight-text-fill: #111827;
+}
+.text-field:focused { -fx-border-color: #9cc5ff; -fx-effect: dropshadow(gaussian, rgba(125,180,255,0.35), 10, 0.1, 0, 0); }
+.text-field:invalid { -fx-border-color: #ff6b6b; }
+
+.combo-box-base {
+    -fx-background-color: rgba(255,255,255,0.10); -fx-background-radius: 12;
+    -fx-border-color: rgba(255,255,255,0.20); -fx-border-radius: 12;
+}
+.combo-box-base:hover { -fx-background-color: rgba(255,255,255,0.17); }
+.combo-box-base:disabled { -fx-opacity: 0.55; }
+.combo-box .list-cell { -fx-text-fill: #f1f5f9; -fx-background-color: transparent; }
+.combo-box .arrow-button { -fx-background-color: transparent; }
+.combo-box .arrow-button .arrow { -fx-background-color: rgba(226,232,240,0.75); }
+.combo-box-popup .list-view {
+    -fx-background-color: rgba(26,32,64,0.97); -fx-background-radius: 12;
+    -fx-border-color: rgba(255,255,255,0.22); -fx-border-radius: 12; -fx-padding: 4;
+}
+.combo-box-popup .list-cell { -fx-background-color: transparent; -fx-text-fill: #f1f5f9; -fx-padding: 7 12; -fx-background-radius: 8; }
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:selected { -fx-background-color: rgba(96,165,250,0.45); -fx-text-fill: white; }
+
+.check-box > .label { -fx-text-fill: #e2e8f0; }
+.check-box > .box { -fx-background-color: rgba(255,255,255,0.10); -fx-border-color: rgba(255,255,255,0.35); -fx-background-radius: 5; -fx-border-radius: 5; }
+.check-box:selected > .box { -fx-background-color: #3b82f6; -fx-border-color: #93c5fd; }
+.check-box:selected > .box > .mark { -fx-background-color: white; }
+
+.radio-button > .label { -fx-text-fill: #e2e8f0; -fx-font-size: 12px; }
+.radio-button > .radio { -fx-background-color: rgba(255,255,255,0.10); -fx-border-color: rgba(255,255,255,0.35); -fx-background-radius: 20; -fx-border-radius: 20; }
+.radio-button > .radio > .dot { -fx-background-color: transparent; }
+.radio-button:selected > .radio { -fx-background-color: #3b82f6; -fx-border-color: #93c5fd; }
+.radio-button:selected > .radio > .dot { -fx-background-color: white; }
+
+/* ---------- Table ---------- */
+.table-view {
+    -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;
+    -fx-table-cell-border-color: transparent;
+    -fx-selection-bar: rgba(96,165,250,0.45); -fx-selection-bar-non-focused: rgba(96,165,250,0.40);
+}
+.table-view .column-header-background { -fx-background-color: rgba(255,255,255,0.07); }
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent; -fx-size: 32;
+    -fx-border-color: transparent rgba(255,255,255,0.06) rgba(255,255,255,0.12) transparent;
+}
+.table-view .column-header .label { -fx-text-fill: rgba(226,232,240,0.70); -fx-font-weight: bold; -fx-alignment: center-left; }
+.table-view .column-header .arrow, .table-view .column-header .sort-order-dots-container { -fx-opacity: 0.85; }
+
+.table-row-cell { -fx-background-color: transparent; -fx-background-insets: 0; -fx-cell-size: 26; -fx-table-cell-border-color: transparent; }
+.table-row-cell:odd { -fx-background-color: rgba(255,255,255,0.025); }
+.table-view .table-row-cell .table-cell,
+.table-view .table-row-cell .table-cell:selected {
+    -fx-background-color: transparent; -fx-text-fill: #e8eef7;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace; -fx-font-size: 12px;
+    -fx-padding: 0 4; -fx-alignment: center-left;
+}
+.table-row-cell.r-tcp   { -fx-background-color: rgba(96,165,250,0.10); }
+.table-row-cell.r-http  { -fx-background-color: rgba(74,222,128,0.14); }
+.table-row-cell.r-tls   { -fx-background-color: rgba(192,132,252,0.15); }
+.table-row-cell.r-udp   { -fx-background-color: rgba(45,212,191,0.12); }
+.table-row-cell.r-dns   { -fx-background-color: rgba(34,211,238,0.14); }
+.table-row-cell.r-icmp  { -fx-background-color: rgba(244,114,182,0.14); }
+.table-row-cell.r-arp   { -fx-background-color: rgba(251,191,36,0.14); }
+.table-view .table-row-cell:filled:hover { -fx-background-color: rgba(255,255,255,0.12); }
+
+/* 選取列：明顯的亮藍底 + 左側亮條 + 白字 */
+.table-view .table-row-cell:filled:selected,
+.table-view:focused .table-row-cell:filled:selected {
+    -fx-background-color: rgba(96,165,250,0.50);
+    -fx-border-color: #cfe3ff; -fx-border-width: 0 0 0 3; -fx-border-insets: 0;
+}
+.table-view .table-row-cell:filled:selected .table-cell,
+.table-view .table-row-cell:filled:selected .table-cell.dir-in,
+.table-view .table-row-cell:filled:selected .table-cell.dir-out,
+.table-view .table-row-cell:filled:selected .cell-text { -fx-text-fill: white; }
+
+.table-cell.dir-in  { -fx-text-fill: #4ade80; }
+.table-cell.dir-out { -fx-text-fill: #fbbf24; }
+.num { -fx-alignment: center-right; }
+.placeholder { -fx-text-fill: rgba(203,213,225,0.55); -fx-font-size: 14px; }
+
+/* 可反白複製的儲存格文字 */
+.table-cell .cell-text, .table-cell .cell-text:focused {
+    -fx-background-color: transparent; -fx-background-insets: 0; -fx-background-radius: 0;
+    -fx-border-color: transparent; -fx-effect: null; -fx-padding: 0;
+    -fx-min-height: 22; -fx-pref-height: 22; -fx-max-height: 22;
+    -fx-text-fill: #e8eef7; -fx-highlight-fill: #f59e0b; -fx-highlight-text-fill: #111827;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace; -fx-font-size: 12px;
+}
+.table-cell .cell-text.num { -fx-alignment: center-right; }
+
+/* ---------- Detail panes ---------- */
+.detail-tree { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 4 0 0 0; }
+.tree-cell { -fx-background-color: transparent; -fx-text-fill: #e8eef7; -fx-font-family: "Cascadia Mono", "Consolas", monospace; -fx-font-size: 12px; }
+.tree-cell:hover { -fx-background-color: rgba(255,255,255,0.07); }
+.tree-cell:selected { -fx-background-color: rgba(96,165,250,0.42); }
+.tree-cell .tree-disclosure-node .arrow { -fx-background-color: rgba(226,232,240,0.75); }
+
+.hex-area, .hex-area .scroll-pane, .hex-area .viewport, .hex-area .content { -fx-background-color: transparent; }
+.hex-area {
+    -fx-control-inner-background: transparent; -fx-text-fill: #dbe5f2;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace; -fx-font-size: 12px;
+    -fx-background-insets: 0; -fx-border-color: transparent; -fx-highlight-fill: #f59e0b; -fx-highlight-text-fill: #111827;
+}
+.hex-area .content { -fx-padding: 6 10; }
+
+.split-pane { -fx-background-color: transparent; -fx-padding: 0; }
+.split-pane > .split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 5 0 5; }
+.split-pane:vertical > .split-pane-divider { -fx-padding: 5 0 5 0; }
+
+/* ---------- Scroll bars ---------- */
+.scroll-bar { -fx-background-color: transparent; }
+.scroll-bar .track, .scroll-bar .track-background { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: rgba(255,255,255,0.22); -fx-background-radius: 6; }
+.scroll-bar .thumb:hover { -fx-background-color: rgba(255,255,255,0.38); }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; -fx-shape: " "; }
+.scroll-bar:vertical { -fx-pref-width: 10; }
+.scroll-bar:horizontal { -fx-pref-height: 10; }
+.corner { -fx-background-color: transparent; }
+
+/* ---------- Status bar ---------- */
+.status-bar { -fx-background-color: transparent; -fx-padding: 8 18 10 18; }
+.status-text { -fx-text-fill: rgba(203,213,225,0.70); -fx-font-size: 12px; }
+.dot { -fx-font-size: 12px; }
+.dot-idle { -fx-text-fill: #94a3b8; }
+.dot-run { -fx-text-fill: #4ade80; -fx-effect: dropshadow(gaussian, rgba(74,222,128,0.8), 8, 0.3, 0, 0); }
+.dot-pause { -fx-text-fill: #fbbf24; }
+
+/* ---------- Menus / tooltip / dialog ---------- */
+.context-menu {
+    -fx-background-color: rgba(26,32,64,0.97); -fx-background-radius: 10;
+    -fx-border-color: rgba(255,255,255,0.22); -fx-border-radius: 10; -fx-padding: 4;
+}
+.context-menu .menu-item { -fx-background-radius: 6; }
+.context-menu .menu-item .label { -fx-text-fill: #f1f5f9; }
+.context-menu .menu-item:focused { -fx-background-color: rgba(96,165,250,0.50); }
+.context-menu .menu-item:disabled .label { -fx-text-fill: rgba(203,213,225,0.40); }
+
+.tooltip {
+    -fx-background-color: rgba(26,32,64,0.97); -fx-text-fill: #f1f5f9; -fx-background-radius: 8;
+    -fx-border-color: rgba(255,255,255,0.20); -fx-border-radius: 8; -fx-font-size: 12px; -fx-padding: 6 10;
+}
+
+.dialog-pane { -fx-background-color: rgb(26,32,64); -fx-border-color: rgba(255,255,255,0.25); -fx-min-width: 460; }
+.dialog-pane .content.label { -fx-text-fill: #f1f5f9; -fx-padding: 16; }
+.dialog-pane > .button-bar > .container { -fx-background-color: rgb(26,32,64); }
+.dialog-pane .graphic-container { -fx-padding: 0; }
