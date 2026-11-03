@@ -64,6 +64,79 @@
           <mainClass>com.sniffer.Launcher</mainClass>
         </configuration>
       </plugin>
+
+      <!-- 1) 把所有相依 jar 複製到 target/libs -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>copy-libs</id>
+            <phase>package</phase>
+            <goals><goal>copy-dependencies</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libs</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- 2) 主程式 jar 也輸出到 target/libs，並寫入 Main-Class -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <outputDirectory>${project.build.directory}/libs</outputDirectory>
+          <archive>
+            <manifest>
+              <mainClass>com.sniffer.Launcher</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- mvn -Pexe package  =>  target/dist/PacketSniffer/PacketSniffer.exe (內含 JRE) -->
+    <profile>
+      <id>exe</id>
+      <properties>
+        <jpackage.type>app-image</jpackage.type>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>jpackage</id>
+                <phase>package</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>jpackage</executable>
+                  <arguments>
+                    <argument>--type</argument><argument>${jpackage.type}</argument>
+                    <argument>--name</argument><argument>PacketSniffer</argument>
+                    <argument>--app-version</argument><argument>${project.version}</argument>
+                    <argument>--vendor</argument><argument>Nimiaoder</argument>
+                    <argument>--input</argument><argument>${project.build.directory}/libs</argument>
+                    <argument>--main-jar</argument><argument>${project.build.finalName}.jar</argument>
+                    <argument>--main-class</argument><argument>com.sniffer.Launcher</argument>
+                    <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                    <argument>--java-options</argument><argument>-Dfile.encoding=UTF-8</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
