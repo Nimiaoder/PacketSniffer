@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="root" styleClass="app-root"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.sniffer.MainController">
+
+    <fx:define>
+        <ToggleGroup fx:id="langGroup"/>
+        <ToggleGroup fx:id="viewGroup"/>
+    </fx:define>
+
+    <top>
+        <VBox>
+            <!-- 自訂標題列 (行為由 WindowChrome 接上) -->
+            <HBox styleClass="title-bar" alignment="CENTER_LEFT">
+                <HBox fx:id="dragArea" spacing="10.0" alignment="CENTER_LEFT" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                    <Label styleClass="title-logo" text="◉"/>
+                    <Label styleClass="title-text" text="Packet Sniffer  ·  Npcap"/>
+                </HBox>
+                <Button fx:id="minBtn" styleClass="win-btn" text="&#xE921;" focusTraversable="false"/>
+                <Button fx:id="maxBtn" styleClass="win-btn" text="&#xE922;" focusTraversable="false"/>
+                <Button fx:id="closeBtn" styleClass="win-btn" text="&#xE8BB;" focusTraversable="false"/>
+            </HBox>
+
+            <!-- 工具列 + 篩選列 (玻璃卡片) -->
+            <VBox styleClass="glass-bar">
+                <VBox.margin>
+                    <Insets top="4.0" right="12.0" bottom="10.0" left="12.0"/>
+                </VBox.margin>
+
+                <HBox styleClass="toolbar" spacing="10.0">
+                    <Label styleClass="field-label" text="網卡"/>
+                    <ComboBox fx:id="nicBox" prefWidth="340.0" promptText="選擇網路卡…">
+                        <tooltip><Tooltip text="選擇要監聽的網路卡（上網用的通常是有 IP 的那張）"/></tooltip>
+                    </ComboBox>
+                    <Button fx:id="startBtn" styleClass="primary-btn" onAction="#onToggleCapture"/>
+                    <Button text="清除封包" onAction="#onClear">
+                        <tooltip><Tooltip text="清空列表中已抓到的封包"/></tooltip>
+                    </Button>
+                    <Button text="重設篩選" onAction="#onReset">
+                        <tooltip><Tooltip text="把協定、方向、搜尋條件都恢復成預設"/></tooltip>
+                    </Button>
+                    <Button fx:id="followBtn" text="追蹤串流" disable="true" onAction="#onFollowStream">
+                        <tooltip><Tooltip text="追蹤選取封包所屬的 TCP 串流，依序顯示雙方的對話內容&#10;快速鍵：Ctrl+Alt+Shift+T　（也可在列表上按右鍵）"/></tooltip>
+                    </Button>
+                    <MenuButton text="SSL 金鑰">
+                        <tooltip><Tooltip text="匯入瀏覽器匯出的 sslkey.txt（SSLKEYLOGFILE），即可解密 TLS 1.2 / 1.3 的封包內容"/></tooltip>
+                        <items>
+                            <MenuItem text="匯入 sslkey.txt…" onAction="#onImportKeys"/>
+                            <MenuItem text="清除已匯入的金鑰" onAction="#onClearKeys"/>
+                        </items>
+                    </MenuButton>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <CheckBox fx:id="autoScroll" text="自動捲動" selected="true"/>
+                </HBox>
+
+                <HBox styleClass="filter-bar" spacing="10.0">
+                    <Label styleClass="field-label" text="協定"/>
+                    <ComboBox fx:id="protoBox">
+                        <tooltip><Tooltip text="只顯示指定協定的封包"/></tooltip>
+                    </ComboBox>
+                    <Label styleClass="field-label" text="方向"/>
+                    <ComboBox fx:id="dirBox">
+                        <tooltip><Tooltip text="接收：送到本機的封包&#10;送出：本機發出的封包"/></tooltip>
+                    </ComboBox>
+                    <Label styleClass="field-label" text="搜尋"/>
+                    <ComboBox fx:id="modeBox">
+                        <tooltip><Tooltip text="選擇要搜尋的範圍：表格內容、封包文字，或十六進位特徵碼"/></tooltip>
+                    </ComboBox>
+                    <TextField fx:id="searchField" HBox.hgrow="ALWAYS"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane orientation="VERTICAL" dividerPositions="0.6">
+            <BorderPane.margin>
+                <Insets top="0.0" right="12.0" bottom="0.0" left="12.0"/>
+            </BorderPane.margin>
+            <items>
+                <!-- 封包列表 -->
+                <StackPane fx:id="tableCard" styleClass="glass-card">
+                    <TableView fx:id="table">
+                        <placeholder>
+                            <Label styleClass="placeholder" text="選擇網卡後按「開始」擷取封包"/>
+                        </placeholder>
+                        <columns>
+                            <TableColumn fx:id="cNo" text="#" prefWidth="70.0"/>
+                            <TableColumn fx:id="cTime" text="時間" prefWidth="110.0"/>
+                            <TableColumn fx:id="cDir" text="方向" prefWidth="80.0"/>
+                            <TableColumn fx:id="cSrc" text="來源" prefWidth="170.0"/>
+                            <TableColumn fx:id="cDst" text="目的" prefWidth="170.0"/>
+                            <TableColumn fx:id="cProto" text="協定" prefWidth="80.0"/>
+                            <TableColumn fx:id="cSp" text="來源埠" prefWidth="80.0"/>
+                            <TableColumn fx:id="cDp" text="目的埠" prefWidth="80.0"/>
+                            <TableColumn fx:id="cSeq" text="Seq" prefWidth="120.0"/>
+                            <TableColumn fx:id="cAck" text="Ack" prefWidth="120.0"/>
+                            <TableColumn fx:id="cLen" text="長度" prefWidth="70.0"/>
+                            <TableColumn fx:id="cInfo" text="資訊" prefWidth="560.0"/>
+                        </columns>
+                    </TableView>
+                </StackPane>
+
+                <!-- 詳細資料 / 封包內容 -->
+                <SplitPane dividerPositions="0.45">
+                    <items>
+                        <VBox fx:id="treeCard" styleClass="glass-card">
+                            <HBox styleClass="pane-head" spacing="8.0" alignment="CENTER_LEFT">
+                                <Label styleClass="pane-title" text="封包詳細資料"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label styleClass="field-label" text="顯示語言"/>
+                                <RadioButton fx:id="rbZh" text="中文" selected="true" toggleGroup="$langGroup"/>
+                                <RadioButton fx:id="rbEn" text="English" toggleGroup="$langGroup"/>
+                            </HBox>
+                            <TreeView fx:id="detailTree" styleClass="detail-tree" VBox.vgrow="ALWAYS"/>
+                        </VBox>
+
+                        <VBox fx:id="hexCard" styleClass="glass-card">
+                            <HBox styleClass="pane-head" spacing="8.0" alignment="CENTER_LEFT">
+                                <Label styleClass="pane-title" text="封包內容"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <RadioButton fx:id="rbRaw" text="原始 Hex / ASCII" selected="true" toggleGroup="$viewGroup"/>
+                                <RadioButton fx:id="rbDec" text="TLS 解密後" toggleGroup="$viewGroup"/>
+                            </HBox>
+                            <StackPane VBox.vgrow="ALWAYS">
+                                <TextArea fx:id="hexArea" styleClass="hex-area" editable="false" wrapText="false"/>
+                                <TextArea fx:id="decArea" styleClass="hex-area" editable="false" wrapText="false"
+                                          visible="false" managed="false"/>
+                            </StackPane>
+                        </VBox>
+                    </items>
+                </SplitPane>
+            </items>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="status-bar" spacing="8.0" alignment="CENTER_LEFT">
+            <Label fx:id="statusDot" styleClass="dot" text="●"/>
+            <Label fx:id="statusText" styleClass="status-text" text="就緒"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="keyLabel" styleClass="status-text"/>
+            <Label styleClass="status-text" text="·"/>
+            <Label fx:id="countLabel" styleClass="status-text"/>
+            <Label styleClass="status-text" text="·"/>
+            <Label fx:id="bytesLabel" styleClass="status-text"/>
+        </HBox>
+    </bottom>
+</BorderPane>

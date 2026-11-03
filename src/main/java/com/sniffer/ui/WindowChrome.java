@@ -1,68 +1,51 @@
 package com.sniffer.ui;
 
-import javafx.geometry.Pos;
+import javafx.css.PseudoClass;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.util.function.Consumer;
+/**
+ * 自訂標題列的行為：拖曳移動、雙擊最大化、最小化 / 最大化 / 關閉。
+ * 標題列的外觀在 FXML 中定義，這裡只負責把行為接上去。
+ */
+public final class WindowChrome {
+    private static final PseudoClass MAXIMIZED = PseudoClass.getPseudoClass("maximized");
 
-/** 自訂標題列：拖曳移動、雙擊最大化、最小化 / 最大化 / 關閉按鈕。 */
-public final class TitleBar extends HBox {
     private final Stage stage;
-    private final Button maxBtn = winButton("\uE922", false);
+    private final Parent root;
+    private final Button maxBtn;
     private boolean maximized;
     private Rectangle2D restoreBounds;
     private double offX, offY;
-    private Consumer<Boolean> onMaximizeChanged = m -> { };
 
-    public TitleBar(Stage stage, String title) {
+    private WindowChrome(Stage stage, Parent root, Button maxBtn) {
         this.stage = stage;
-        getStyleClass().add("title-bar");
-        setAlignment(Pos.CENTER_LEFT);
+        this.root = root;
+        this.maxBtn = maxBtn;
+    }
 
-        Label logo = new Label("◉");
-        logo.getStyleClass().add("title-logo");
-        Label text = new Label(title);
-        text.getStyleClass().add("title-text");
-
-        HBox dragArea = new HBox(10, logo, text);
-        dragArea.setAlignment(Pos.CENTER_LEFT);
-        dragArea.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(dragArea, Priority.ALWAYS);
-        dragArea.setOnMousePressed(this::onPress);
-        dragArea.setOnMouseDragged(this::onDrag);
+    public static WindowChrome install(Stage stage, Parent root, Node dragArea,
+                                       Button minBtn, Button maxBtn, Button closeBtn) {
+        WindowChrome c = new WindowChrome(stage, root, maxBtn);
+        if (!closeBtn.getStyleClass().contains("win-btn-close")) closeBtn.getStyleClass().add("win-btn-close");
+        dragArea.setOnMousePressed(c::onPress);
+        dragArea.setOnMouseDragged(c::onDrag);
         dragArea.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) toggleMaximize();
+            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) c.toggleMaximize();
         });
-
-        Button min = winButton("\uE921", false);
-        Button close = winButton("\uE8BB", true);
-        min.setOnAction(e -> stage.setIconified(true));
-        maxBtn.setOnAction(e -> toggleMaximize());
-        close.setOnAction(e -> stage.close());
-
-        getChildren().addAll(dragArea, min, maxBtn, close);
+        minBtn.setOnAction(e -> stage.setIconified(true));
+        maxBtn.setOnAction(e -> c.toggleMaximize());
+        closeBtn.setOnAction(e -> stage.close());
+        return c;
     }
 
     public boolean isMaximized() { return maximized; }
-
-    /** 最大化狀態改變時通知 (最大化時主視窗要取消圓角)。 */
-    public void setOnMaximizeChanged(Consumer<Boolean> c) { this.onMaximizeChanged = c; }
-
-    private static Button winButton(String glyph, boolean isClose) {
-        Button b = new Button(glyph);
-        b.getStyleClass().add("win-btn");
-        if (isClose) b.getStyleClass().add("win-btn-close");
-        b.setFocusTraversable(false);
-        return b;
-    }
 
     private void onPress(MouseEvent e) {
         if (e.getButton() != MouseButton.PRIMARY) return;
@@ -98,7 +81,7 @@ public final class TitleBar extends HBox {
         stage.setHeight(vb.getHeight());
         maximized = true;
         maxBtn.setText("\uE923");
-        onMaximizeChanged.accept(true);
+        root.pseudoClassStateChanged(MAXIMIZED, true);
     }
 
     private void applyRestore() {
@@ -108,6 +91,6 @@ public final class TitleBar extends HBox {
         stage.setHeight(restoreBounds.getHeight());
         maximized = false;
         maxBtn.setText("\uE922");
-        onMaximizeChanged.accept(false);
+        root.pseudoClassStateChanged(MAXIMIZED, false);
     }
 }

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+
+<BorderPane fx:id="root" styleClass="app-root"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.sniffer.FollowStreamController">
+    <top>
+        <VBox>
+            <HBox styleClass="title-bar" alignment="CENTER_LEFT">
+                <HBox fx:id="dragArea" spacing="10.0" alignment="CENTER_LEFT" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                    <Label styleClass="title-logo" text="◉"/>
+                    <Label fx:id="titleLabel" styleClass="title-text" text="追蹤 TCP 串流"/>
+                </HBox>
+                <Button fx:id="minBtn" styleClass="win-btn" text="&#xE921;" focusTraversable="false"/>
+                <Button fx:id="maxBtn" styleClass="win-btn" text="&#xE922;" focusTraversable="false"/>
+                <Button fx:id="closeBtn" styleClass="win-btn" text="&#xE8BB;" focusTraversable="false"/>
+            </HBox>
+
+            <VBox styleClass="glass-bar">
+                <VBox.margin>
+                    <Insets top="4.0" right="12.0" bottom="10.0" left="12.0"/>
+                </VBox.margin>
+
+                <HBox styleClass="toolbar" spacing="14.0">
+                    <Label fx:id="endpointLabel" styleClass="follow-endpoints"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label styleClass="legend-client" text="■ 客戶端 → 伺服器"/>
+                    <Label styleClass="legend-server" text="■ 伺服器 → 客戶端"/>
+                </HBox>
+
+                <HBox styleClass="filter-bar" spacing="10.0">
+                    <Label styleClass="field-label" text="資料來源"/>
+                    <ComboBox fx:id="sourceBox">
+                        <tooltip><Tooltip text="原始資料：封包中實際傳送的內容（HTTPS 為加密後的亂碼）&#10;TLS 解密後：需先匯入 sslkey.txt"/></tooltip>
+                    </ComboBox>
+                    <Label styleClass="field-label" text="顯示格式"/>
+                    <ComboBox fx:id="formatBox"/>
+                    <Label styleClass="field-label" text="方向"/>
+                    <ComboBox fx:id="dirBox"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="複製全部文字" onAction="#onCopyAll"/>
+                    <Button text="另存新檔…" onAction="#onSave">
+                        <tooltip><Tooltip text="把目前顯示的資料（依所選方向與資料來源）存成二進位檔"/></tooltip>
+                    </Button>
+                </HBox>
+            </VBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane fx:id="viewCard" styleClass="glass-card">
+            <BorderPane.margin>
+                <Insets top="0.0" right="12.0" bottom="0.0" left="12.0"/>
+            </BorderPane.margin>
+            <WebView fx:id="webView"/>
+        </StackPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="status-bar" spacing="8.0" alignment="CENTER_LEFT">
+            <Label fx:id="statsLabel" styleClass="status-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="tlsLabel" styleClass="status-text"/>
+        </HBox>
+    </bottom>
+</BorderPane>

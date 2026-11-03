@@ -5,9 +5,14 @@ public final class HexUtil {
 
     /** 產生類似 Wireshark 的 Hex + ASCII 傾印。 */
     public static String dump(byte[] d) {
+        return dump(d, 0);
+    }
+
+    /** 同 {@link #dump(byte[])}，但位移欄從 base 開始計算 (追蹤串流時接續上一段)。 */
+    public static String dump(byte[] d, int base) {
         StringBuilder sb = new StringBuilder(d.length * 4 + 64);
         for (int i = 0; i < d.length; i += 16) {
-            sb.append(String.format("%04X  ", i));
+            sb.append(String.format("%08X  ", base + i));
             for (int j = 0; j < 16; j++) {
                 if (i + j < d.length) sb.append(String.format("%02X ", d[i + j] & 0xFF));
                 else sb.append("   ");

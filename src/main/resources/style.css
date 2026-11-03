@@ -225,3 +225,25 @@
 .dialog-pane .content.label { -fx-text-fill: #f1f5f9; -fx-padding: 16; }
 .dialog-pane > .button-bar > .container { -fx-background-color: rgb(26,32,64); }
 .dialog-pane .graphic-container { -fx-padding: 0; }
+
+/* =====================================================================
+   新增：SSL 金鑰選單按鈕、追蹤串流視窗
+   ===================================================================== */
+.menu-button {
+    -fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #f1f5f9;
+    -fx-background-insets: 0; -fx-background-radius: 12;
+    -fx-border-color: rgba(255,255,255,0.20); -fx-border-radius: 12;
+    -fx-padding: 0 6 0 0; -fx-cursor: hand;
+}
+.menu-button:hover, .menu-button:showing { -fx-background-color: rgba(255,255,255,0.18); }
+.menu-button > .label { -fx-text-fill: #f1f5f9; -fx-padding: 6 6 6 16; }
+.menu-button > .arrow-button { -fx-background-color: transparent; -fx-padding: 0 4 0 0; }
+.menu-button > .arrow-button > .arrow { -fx-background-color: rgba(226,232,240,0.75); }
+
+.follow-endpoints {
+    -fx-text-fill: #f1f5f9; -fx-font-weight: bold;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace; -fx-font-size: 13px;
+}
+.legend-client { -fx-text-fill: #f87171; -fx-font-size: 12px; }
+.legend-server { -fx-text-fill: #60a5fa; -fx-font-size: 12px; }
+.web-view { -fx-background-color: transparent; }
