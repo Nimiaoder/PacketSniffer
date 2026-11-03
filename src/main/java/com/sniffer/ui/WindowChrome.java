@@ -36,11 +36,13 @@ public final class WindowChrome {
         if (!closeBtn.getStyleClass().contains("win-btn-close")) closeBtn.getStyleClass().add("win-btn-close");
         dragArea.setOnMousePressed(c::onPress);
         dragArea.setOnMouseDragged(c::onDrag);
-        dragArea.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) c.toggleMaximize();
-        });
-        minBtn.setOnAction(e -> stage.setIconified(true));
-        maxBtn.setOnAction(e -> c.toggleMaximize());
+        if (maxBtn != null) {
+            dragArea.setOnMouseClicked(e -> {
+                if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) c.toggleMaximize();
+            });
+            maxBtn.setOnAction(e -> c.toggleMaximize());
+        }
+        if (minBtn != null) minBtn.setOnAction(e -> stage.setIconified(true));
         closeBtn.setOnAction(e -> stage.close());
         return c;
     }
@@ -80,7 +82,7 @@ public final class WindowChrome {
         stage.setWidth(vb.getWidth());
         stage.setHeight(vb.getHeight());
         maximized = true;
-        maxBtn.setText("\uE923");
+        if (maxBtn != null) maxBtn.setText("\uE923");
         root.pseudoClassStateChanged(MAXIMIZED, true);
     }
 
@@ -90,7 +92,7 @@ public final class WindowChrome {
         stage.setWidth(restoreBounds.getWidth());
         stage.setHeight(restoreBounds.getHeight());
         maximized = false;
-        maxBtn.setText("\uE922");
+        if (maxBtn != null) maxBtn.setText("\uE922");
         root.pseudoClassStateChanged(MAXIMIZED, false);
     }
 }

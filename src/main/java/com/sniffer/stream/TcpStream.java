@@ -145,8 +145,8 @@ public final class TcpStream {
 
     public Chunk chunkFor(long pktNo) { return byPacket.get(pktNo); }
 
-    /** 該方向資料流中某個位置，是由哪個封包送來的；找不到回傳 -1。 */
-    public long packetAt(int dir, int offset) {
+    /** 該方向資料流中某個位置，是由哪個封包送來的；找不到回傳 null。 */
+    public Chunk chunkAt(int dir, int offset) {
         List<Chunk> l = perDir.get(dir);
         int lo = 0, hi = l.size() - 1;
         while (lo <= hi) {
@@ -154,8 +154,14 @@ public final class TcpStream {
             Chunk c = l.get(mid);
             if (offset < c.offset) hi = mid - 1;
             else if (offset >= c.offset + c.data.length) lo = mid + 1;
-            else return c.pktNo;
+            else return c;
         }
-        return -1;
+        return null;
+    }
+
+    /** 同 {@link #chunkAt}，只回傳封包編號；找不到回傳 -1。 */
+    public long packetAt(int dir, int offset) {
+        Chunk c = chunkAt(dir, offset);
+        return c == null ? -1 : c.pktNo;
     }
 }

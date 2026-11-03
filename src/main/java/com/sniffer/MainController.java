@@ -14,7 +14,7 @@ import com.sniffer.tls.TlsRecord;
 import com.sniffer.tls.TlsResult;
 import com.sniffer.ui.ResizeHelper;
 import com.sniffer.ui.WindowChrome;
-import com.sniffer.util.HexUtil;
+import com.sniffer.util.HexHtml;
 import com.sniffer.util.PacketFilter;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -40,7 +40,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -48,6 +50,7 @@ import javafx.util.Duration;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -69,6 +72,7 @@ public class MainController {
 
     private static final int MAX_PACKETS = 200_000;
     private static final int MAX_DECRYPT_VIEW = 64 * 1024;
+    private static final String EMPTY_PAGE = HexHtml.page("");
     private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
     private static final DateTimeFormatter TIME_FMT =
             DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
@@ -124,7 +128,7 @@ public class MainController {
     @FXML private TableColumn<PacketRecord, Integer> cSp, cDp, cLen;
 
     @FXML private TreeView<String> detailTree;
-    @FXML private TextArea hexArea, decArea;
+    @FXML private WebView hexView, decView;
     @FXML private ToggleGroup langGroup, viewGroup;
     @FXML private RadioButton rbZh, rbEn, rbRaw, rbDec;
 
@@ -141,6 +145,9 @@ public class MainController {
     private long keyVersion;
     private final Map<StreamKey, List<PacketRecord>> streamIndex = new HashMap<>();
     private final Map<StreamKey, StreamData> streamCache = new HashMap<>();
+
+    private byte[] rawBytes = new byte[0];
+    private byte[] decBytes = new byte[0];
 
     private Stage stage;
     private String css;
@@ -181,6 +188,14 @@ public class MainController {
         statusDot.getStyleClass().add("dot-idle");
         updateKeyLabel();
 
+        // 封包內容 (WebView：Hex / 文字 / 位移各自獨立，可分開反白複製)
+        for (WebView w : List.of(hexView, decView)) {
+            w.setContextMenuEnabled(false);
+            w.setPageFill(Color.TRANSPARENT);
+            w.getEngine().setJavaScriptEnabled(false);     // 內容來自網路，一律當純文字顯示
+            w.getEngine().loadContent(EMPTY_PAGE);
+        }
+
         // 詳細資料
         MenuItem copyLine = new MenuItem("複製此行");
         copyLine.setOnAction(e -> {
@@ -196,11 +211,11 @@ public class MainController {
         viewGroup.selectedToggleProperty().addListener((o, a, b) -> {
             if (b == null) { a.setSelected(true); return; }
             boolean dec = b == rbDec;
-            hexArea.setVisible(!dec);
-            hexArea.setManaged(!dec);
-            decArea.setVisible(dec);
-            decArea.setManaged(dec);
-            if (dec) decArea.setText(decryptedText(table.getSelectionModel().getSelectedItem()));
+            hexView.setVisible(!dec);
+            hexView.setManaged(!dec);
+            decView.setVisible(dec);
+            decView.setManaged(dec);
+            if (dec) decView.getEngine().loadContent(decryptedPage(table.getSelectionModel().getSelectedItem()));
         });
 
         buildTable();
@@ -220,7 +235,7 @@ public class MainController {
 
         applyFilter();
         updateButtons();
-        loadInterfaces();
+        Platform.runLater(this::loadInterfaces);          // 等主視窗顯示後再跳出 (可能有警告對話框)
 
         timeline = new Timeline(new KeyFrame(Duration.millis(100), e -> drain()));
         timeline.setCycleCount(Animation.INDEFINITE);
@@ -533,13 +548,15 @@ public class MainController {
     private void showDetails(PacketRecord r) {
         if (r == null) {
             detailTree.setRoot(null);
-            hexArea.clear();
-            decArea.clear();
+            rawBytes = new byte[0];
+            decBytes = new byte[0];
+            hexView.getEngine().loadContent(EMPTY_PAGE);
+            decView.getEngine().loadContent(EMPTY_PAGE);
             return;
         }
         detailTree.setRoot(PacketParser.buildDetails(r, rbZh.isSelected()));
-        hexArea.setText(HexUtil.dump(r.raw));
-        if (rbDec.isSelected()) decArea.setText(decryptedText(r));
+        hexView.getEngine().loadContent(rawPage(r));
+        if (rbDec.isSelected()) decView.getEngine().loadContent(decryptedPage(r));
     }
 
     // ------------------------------------------------------------------ streams / TLS
@@ -588,13 +605,14 @@ public class MainController {
     }
 
     private void followStream(PacketRecord r) {
-        StreamData d = streamData(Segments.keyOf(r));
+        StreamKey key = Segments.keyOf(r);
+        StreamData d = streamData(key);
         if (d == null) {
             showAlert(Alert.AlertType.ERROR, "找不到這條連線的封包資料。");
             return;
         }
         try {
-            FollowStreamController.open(css, d.stream, d.tls);
+            FollowStreamController.open(css, d.stream, d.tls, localDirOf(d.stream, streamIndex.get(key)));
         } catch (IOException e) {
             showAlert(Alert.AlertType.ERROR, "無法開啟追蹤視窗：" + e.getMessage());
         }
@@ -640,45 +658,86 @@ public class MainController {
         keyLabel.setText(keyLog.isEmpty() ? "SSL 金鑰：未匯入" : "SSL 金鑰：已匯入 " + keyLog.sessionCount() + " 條連線");
     }
 
-    /** 「TLS 解密後」分頁的內容：顯示與所選封包資料重疊的 TLS 記錄。 */
-    private String decryptedText(PacketRecord r) {
-        if (r == null) return "";
-        if (!isTcp(r)) return "此封包不是 TCP，沒有可解密的 TLS 資料。";
+    /** 這條連線中，由本機送出的那個方向 (0 = 客戶端 → 伺服器, 1 = 反向)；無法判斷回傳 -1。 */
+    private static int localDirOf(TcpStream st, List<PacketRecord> list) {
+        if (list == null) return -1;
+        for (PacketRecord r : list) {
+            if (r.direction == Direction.OUT) return st.dirOf(r.src, r.srcPort);
+            if (r.direction == Direction.IN) return 1 - st.dirOf(r.src, r.srcPort);
+        }
+        return -1;
+    }
+
+    private static String dirClass(PacketRecord r) {
+        return r.direction == Direction.OUT ? " c" : r.direction == Direction.IN ? " s" : "";
+    }
+
+    /** 「原始資料」：Hex / 文字 / 位移三欄各自獨立，可分開反白複製。 */
+    private String rawPage(PacketRecord r) {
+        rawBytes = r.raw;
+        return HexHtml.page("<div class=\"p" + dirClass(r) + "\"><div class=\"hd\">"
+                + "<span class=\"tag\">封包 #" + r.no + "</span>"
+                + "<span class=\"t\">" + r.raw.length + " 位元組</span>"
+                + "<span class=\"ep\">" + HexHtml.escape(r.protocol) + "</span></div>"
+                + HexHtml.hexBlock(r.raw, 0) + "</div>");
+    }
+
+    /** 「TLS 解密後」：顯示與所選封包資料重疊的 TLS 記錄。 */
+    private String decryptedPage(PacketRecord r) {
+        decBytes = new byte[0];
+        if (r == null) return EMPTY_PAGE;
+        if (!isTcp(r)) return HexHtml.page(HexHtml.note("此封包不是 TCP，沒有可解密的 TLS 資料。"));
         if (keyLog.isEmpty()) {
-            return "尚未匯入 SSL 金鑰。\n\n請按上方工具列「SSL 金鑰」→「匯入 sslkey.txt…」。\n"
-                    + "（瀏覽器可設定環境變數 SSLKEYLOGFILE 來匯出金鑰檔。）";
+            return HexHtml.page(HexHtml.note("尚未匯入 SSL 金鑰。請按上方工具列「SSL 金鑰」→「匯入 sslkey.txt…」。")
+                    + HexHtml.note("（瀏覽器可設定環境變數 SSLKEYLOGFILE 來匯出金鑰檔。）"));
         }
         StreamData d = streamData(Segments.keyOf(r));
-        if (d == null || d.tls == null) return "無法取得這條連線的資料。";
-        if (!d.tls.usable()) return d.tls.error;
+        if (d == null || d.tls == null) return HexHtml.page(HexHtml.note("無法取得這條連線的資料。"));
+        if (!d.tls.usable()) return HexHtml.page(HexHtml.note(d.tls.error));
 
         int dir = d.stream.dirOf(r.src, r.srcPort);
         TcpStream.Chunk ch = d.stream.chunkFor(r.no);
-        if (ch == null) return "此封包沒有新的 TCP 資料（純 ACK、握手或重傳）。";
+        if (ch == null) return HexHtml.page(HexHtml.note("此封包沒有新的 TCP 資料（純 ACK、握手或重傳）。"));
 
-        StringBuilder sb = new StringBuilder(d.tls.summary());
-        sb.append("\n方向：").append(dir == 0 ? "客戶端 → 伺服器" : "伺服器 → 客戶端").append("\n\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append(HexHtml.note(d.tls.summary() + "　方向：" + (dir == 0 ? "客戶端 → 伺服器" : "伺服器 → 客戶端")));
+        ByteArrayOutputStream all = new ByteArrayOutputStream();
         int chEnd = ch.offset + ch.data.length;
         int shown = 0;
         for (TlsRecord t : d.tls.records) {
             if (t.dir != dir || t.offset >= chEnd || t.offset + t.totalLength <= ch.offset) continue;
             shown++;
-            sb.append("── TLS 記錄　類型：").append(TlsRecord.typeName(t.contentType))
-                    .append("　長度：").append(t.totalLength - 5).append(" 位元組　");
-            sb.append(t.encrypted ? (t.decrypted ? "(已解密)" : "(解密失敗)") : "(未加密)");
-            if (t.offset < ch.offset || t.offset + t.totalLength > chEnd) sb.append("　※ 此記錄橫跨多個封包");
-            sb.append(" ──\n");
+            String state = t.encrypted ? (t.decrypted ? "已解密" : "解密失敗") : "未加密";
+            if (t.offset < ch.offset || t.offset + t.totalLength > chEnd) state += "　※ 此記錄橫跨多個封包";
+            sb.append("<div class=\"p").append(dirClass(r)).append("\"><div class=\"hd\">")
+                    .append("<span class=\"tag\">").append(HexHtml.escape(TlsRecord.typeName(t.contentType))).append("</span>")
+                    .append("<span class=\"t\">").append(t.totalLength - 5).append(" 位元組</span>")
+                    .append("<span class=\"ep\">").append(HexHtml.escape(state)).append("</span></div>");
             if (t.plaintext != null) {
                 byte[] p = t.plaintext;
-                sb.append(HexUtil.dump(p.length > MAX_DECRYPT_VIEW ? Arrays.copyOf(p, MAX_DECRYPT_VIEW) : p));
-                if (p.length > MAX_DECRYPT_VIEW) sb.append("…（內容過長，只顯示前 64 KB，完整內容請用「追蹤串流」）\n");
+                boolean cut = p.length > MAX_DECRYPT_VIEW;
+                byte[] view = cut ? Arrays.copyOf(p, MAX_DECRYPT_VIEW) : p;
+                sb.append(HexHtml.hexBlock(view, 0));
+                if (cut) sb.append(HexHtml.note("…內容過長，只顯示前 64 KB，完整內容請用「追蹤串流」"));
+                all.write(view, 0, view.length);
             } else if (t.note != null) {
-                sb.append(t.note).append('\n');
+                sb.append(HexHtml.note(t.note));
             }
-            sb.append('\n');
+            sb.append("</div>");
         }
-        if (shown == 0) sb.append("此封包的資料沒有對應到可解析的 TLS 記錄。");
-        return sb.toString();
+        if (shown == 0) sb.append(HexHtml.note("此封包的資料沒有對應到可解析的 TLS 記錄。"));
+        decBytes = all.toByteArray();
+        return HexHtml.page(sb.toString());
+    }
+
+    @FXML
+    private void onCopyHex() {
+        copyText(HexHtml.hexOnly(rbDec.isSelected() ? decBytes : rawBytes));
+    }
+
+    @FXML
+    private void onCopyAscii() {
+        copyText(HexHtml.asciiOnly(rbDec.isSelected() ? decBytes : rawBytes));
     }
 
     // ------------------------------------------------------------------ misc
@@ -690,12 +749,13 @@ public class MainController {
         return String.format("%.2f GB", b / 1073741824.0);
     }
 
+    /** 以玻璃風格的自訂視窗顯示訊息 (可拖曳、可按 X / Esc 關閉、長訊息可捲動)。 */
     private void showAlert(Alert.AlertType type, String msg) {
-        Alert a = new Alert(type, msg, ButtonType.OK);
-        a.initOwner(stage);
-        a.initStyle(StageStyle.UNDECORATED);
-        a.setHeaderText(null);
-        a.getDialogPane().getStylesheets().add(css);
-        a.showAndWait();
+        GlassDialogController.Kind kind = switch (type) {
+            case ERROR -> GlassDialogController.Kind.ERROR;
+            case WARNING -> GlassDialogController.Kind.WARNING;
+            default -> GlassDialogController.Kind.INFO;
+        };
+        GlassDialogController.show(stage, css, kind, msg);
     }
 }

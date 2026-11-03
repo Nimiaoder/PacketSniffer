@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
 
 <BorderPane fx:id="root" styleClass="app-root"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -124,13 +125,19 @@
                             <HBox styleClass="pane-head" spacing="8.0" alignment="CENTER_LEFT">
                                 <Label styleClass="pane-title" text="封包內容"/>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <RadioButton fx:id="rbRaw" text="原始 Hex / ASCII" selected="true" toggleGroup="$viewGroup"/>
+                                <RadioButton fx:id="rbRaw" text="原始資料" selected="true" toggleGroup="$viewGroup"/>
                                 <RadioButton fx:id="rbDec" text="TLS 解密後" toggleGroup="$viewGroup"/>
+                                <Button styleClass="mini-btn" text="複製 Hex" onAction="#onCopyHex">
+                                    <tooltip><Tooltip text="只複製十六進位位元組（不含位移與文字欄）"/></tooltip>
+                                </Button>
+                                <Button styleClass="mini-btn" text="複製文字" onAction="#onCopyAscii">
+                                    <tooltip><Tooltip text="只複製可讀文字（ASCII，其餘以 . 取代）"/></tooltip>
+                                </Button>
                             </HBox>
+                            <!-- Hex / 文字 / 位移 是三個獨立欄位，拖曳反白時只會選到同一欄 -->
                             <StackPane VBox.vgrow="ALWAYS">
-                                <TextArea fx:id="hexArea" styleClass="hex-area" editable="false" wrapText="false"/>
-                                <TextArea fx:id="decArea" styleClass="hex-area" editable="false" wrapText="false"
-                                          visible="false" managed="false"/>
+                                <WebView fx:id="hexView"/>
+                                <WebView fx:id="decView" visible="false" managed="false"/>
                             </StackPane>
                         </VBox>
                     </items>

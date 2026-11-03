@@ -187,15 +187,31 @@
 .split-pane > .split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 5 0 5; }
 .split-pane:vertical > .split-pane-divider { -fx-padding: 5 0 5 0; }
 
-/* ---------- Scroll bars ---------- */
-.scroll-bar { -fx-background-color: transparent; }
-.scroll-bar .track, .scroll-bar .track-background { -fx-background-color: transparent; -fx-border-color: transparent; }
-.scroll-bar .thumb { -fx-background-color: rgba(255,255,255,0.22); -fx-background-radius: 6; }
-.scroll-bar .thumb:hover { -fx-background-color: rgba(255,255,255,0.38); }
-.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-padding: 0; -fx-shape: " "; }
-.scroll-bar:vertical { -fx-pref-width: 10; }
-.scroll-bar:horizontal { -fx-pref-height: 10; }
+/* ---------- Scroll bars ----------
+   直向 / 橫向都用同一組樣式：有軌道、明顯的滑塊。
+   (舊版用 -fx-shape: " " 隱藏箭頭，會讓直向捲軸的版面算錯而整條消失，已移除) */
+.scroll-bar { -fx-background-color: transparent; -fx-padding: 0; -fx-opacity: 1; }
+.scroll-bar:vertical { -fx-pref-width: 14; -fx-min-width: 14; }
+.scroll-bar:horizontal { -fx-pref-height: 14; -fx-min-height: 14; }
+.scroll-bar > .track-background {
+    -fx-background-color: rgba(255,255,255,0.07); -fx-background-insets: 0; -fx-background-radius: 7;
+    -fx-border-color: transparent;
+}
+.scroll-bar > .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar:vertical > .thumb, .scroll-bar:horizontal > .thumb {
+    -fx-background-color: rgba(255,255,255,0.40); -fx-background-insets: 2; -fx-background-radius: 7;
+    -fx-border-color: transparent;
+}
+.scroll-bar:vertical > .thumb:hover, .scroll-bar:horizontal > .thumb:hover { -fx-background-color: rgba(255,255,255,0.60); }
+.scroll-bar:vertical > .thumb:pressed, .scroll-bar:horizontal > .thumb:pressed { -fx-background-color: rgba(255,255,255,0.78); }
+.scroll-bar > .increment-button, .scroll-bar > .decrement-button {
+    -fx-background-color: transparent; -fx-background-insets: 0; -fx-background-radius: 7;
+    -fx-border-color: transparent; -fx-padding: 3;
+}
+.scroll-bar > .increment-button:hover, .scroll-bar > .decrement-button:hover { -fx-background-color: rgba(255,255,255,0.12); }
+.scroll-bar > .increment-button > .increment-arrow, .scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: rgba(226,232,240,0.75); -fx-padding: 2.5;
+}
 .corner { -fx-background-color: transparent; }
 
 /* ---------- Status bar ---------- */
@@ -247,3 +263,16 @@
 .legend-client { -fx-text-fill: #f87171; -fx-font-size: 12px; }
 .legend-server { -fx-text-fill: #60a5fa; -fx-font-size: 12px; }
 .web-view { -fx-background-color: transparent; }
+
+/* =====================================================================
+   新增：小按鈕、訊息視窗
+   ===================================================================== */
+.mini-btn { -fx-padding: 3 10; -fx-font-size: 11px; -fx-background-radius: 8; -fx-border-radius: 8; }
+
+.dialog-text, .dialog-text .scroll-pane, .dialog-text .viewport, .dialog-text .content { -fx-background-color: transparent; }
+.dialog-text {
+    -fx-control-inner-background: transparent; -fx-text-fill: #f1f5f9; -fx-font-size: 13px;
+    -fx-background-insets: 0; -fx-border-color: transparent;
+    -fx-highlight-fill: #f59e0b; -fx-highlight-text-fill: #111827;
+}
+.dialog-text .content { -fx-padding: 12 14; }

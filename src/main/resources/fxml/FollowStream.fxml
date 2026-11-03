@@ -28,8 +28,8 @@
                 <HBox styleClass="toolbar" spacing="14.0">
                     <Label fx:id="endpointLabel" styleClass="follow-endpoints"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label styleClass="legend-client" text="■ 客戶端 → 伺服器"/>
-                    <Label styleClass="legend-server" text="■ 伺服器 → 客戶端"/>
+                    <Label fx:id="legendSend" styleClass="legend-client"/>
+                    <Label fx:id="legendRecv" styleClass="legend-server"/>
                 </HBox>
 
                 <HBox styleClass="filter-bar" spacing="10.0">
@@ -41,8 +41,18 @@
                     <ComboBox fx:id="formatBox"/>
                     <Label styleClass="field-label" text="方向"/>
                     <ComboBox fx:id="dirBox"/>
+                    <CheckBox fx:id="showHeader" text="顯示封包標頭" selected="true">
+                        <tooltip><Tooltip text="每段資料上方顯示：發送/接收、封包編號、時間、來源→目的、大小"/></tooltip>
+                    </CheckBox>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="複製全部文字" onAction="#onCopyAll"/>
+                    <MenuButton text="複製">
+                        <tooltip><Tooltip text="Hex 傾印模式下，畫面上的位移 / Hex / 文字三欄可分別拖曳反白；&#10;也可以用這裡一次複製其中一種內容"/></tooltip>
+                        <items>
+                            <MenuItem text="全部文字（含標頭）" onAction="#onCopyAll"/>
+                            <MenuItem text="只複製 Hex 位元組" onAction="#onCopyHex"/>
+                            <MenuItem text="只複製可讀文字" onAction="#onCopyText"/>
+                        </items>
+                    </MenuButton>
                     <Button text="另存新檔…" onAction="#onSave">
                         <tooltip><Tooltip text="把目前顯示的資料（依所選方向與資料來源）存成二進位檔"/></tooltip>
                     </Button>
