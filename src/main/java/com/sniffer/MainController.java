@@ -25,7 +25,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -73,7 +72,8 @@ public class MainController {
     private static final int MAX_PACKETS = 200_000;
     private static final int MAX_DECRYPT_VIEW = 64 * 1024;
     private static final String EMPTY_PAGE = HexHtml.page("");
-    private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
+    /** 搜尋欄輸入格式錯誤時加上的 style class。 */
+    private static final String INVALID = "invalid";
     private static final DateTimeFormatter TIME_FMT =
             DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
@@ -532,7 +532,8 @@ public class MainController {
     private void applyFilter() {
         PacketFilter.Mode mode = modeBox.getValue();
         String q = searchField.getText();
-        searchField.pseudoClassStateChanged(INVALID, !PacketFilter.isValid(mode, q));
+        searchField.getStyleClass().remove(INVALID);
+        if (!PacketFilter.isValid(mode, q)) searchField.getStyleClass().add(INVALID);
         filtered.setPredicate(PacketFilter.build(protoBox.getValue(), selectedDirection(), mode, q));
     }
 

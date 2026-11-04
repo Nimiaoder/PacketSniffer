@@ -1,6 +1,5 @@
 package com.sniffer.ui;
 
-import javafx.css.PseudoClass;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -15,7 +14,8 @@ import javafx.stage.Stage;
  * 標題列的外觀在 FXML 中定義，這裡只負責把行為接上去。
  */
 public final class WindowChrome {
-    private static final PseudoClass MAXIMIZED = PseudoClass.getPseudoClass("maximized");
+    /** 最大化時加在根節點上的 style class (取代自訂 pseudo-class，IDE 與 CSS 解析器都不會警告)。 */
+    private static final String MAXIMIZED = "maximized";
 
     private final Stage stage;
     private final Parent root;
@@ -83,7 +83,7 @@ public final class WindowChrome {
         stage.setHeight(vb.getHeight());
         maximized = true;
         if (maxBtn != null) maxBtn.setText("\uE923");
-        root.pseudoClassStateChanged(MAXIMIZED, true);
+        if (!root.getStyleClass().contains(MAXIMIZED)) root.getStyleClass().add(MAXIMIZED);
     }
 
     private void applyRestore() {
@@ -93,6 +93,6 @@ public final class WindowChrome {
         stage.setHeight(restoreBounds.getHeight());
         maximized = false;
         if (maxBtn != null) maxBtn.setText("\uE922");
-        root.pseudoClassStateChanged(MAXIMIZED, false);
+        root.getStyleClass().remove(MAXIMIZED);
     }
 }

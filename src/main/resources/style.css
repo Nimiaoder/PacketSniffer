@@ -16,7 +16,7 @@
     -fx-border-radius: 14;
     -fx-border-width: 1;
 }
-.app-root:maximized { -fx-background-radius: 0; -fx-border-radius: 0; }
+.app-root.maximized { -fx-background-radius: 0; -fx-border-radius: 0; }
 
 /* ---------- Title bar ---------- */
 .title-bar {
@@ -26,7 +26,7 @@
     -fx-padding: 0 0 0 16;
     -fx-border-color: transparent transparent rgba(255,255,255,0.08) transparent;
 }
-.app-root:maximized .title-bar { -fx-background-radius: 0; }
+.app-root.maximized .title-bar { -fx-background-radius: 0; }
 .title-logo { -fx-text-fill: #7db4ff; -fx-font-size: 15px; }
 .title-text { -fx-text-fill: rgba(241,245,249,0.85); -fx-font-size: 12px; -fx-font-weight: bold; }
 .win-btn {
@@ -36,7 +36,7 @@
 }
 .win-btn:hover { -fx-background-color: rgba(255,255,255,0.12); }
 .win-btn-close { -fx-background-radius: 0 14 0 0; }
-.app-root:maximized .win-btn-close { -fx-background-radius: 0; }
+.app-root.maximized .win-btn-close { -fx-background-radius: 0; }
 .win-btn-close:hover { -fx-background-color: #e81123; -fx-text-fill: white; }
 
 /* ---------- Glass surfaces ---------- */
@@ -81,7 +81,7 @@
     -fx-highlight-fill: #f59e0b; -fx-highlight-text-fill: #111827;
 }
 .text-field:focused { -fx-border-color: #9cc5ff; -fx-effect: dropshadow(gaussian, rgba(125,180,255,0.35), 10, 0.1, 0, 0); }
-.text-field:invalid { -fx-border-color: #ff6b6b; }
+.text-field.invalid { -fx-border-color: #ff6b6b; }
 
 .combo-box-base {
     -fx-background-color: rgba(255,255,255,0.10); -fx-background-radius: 12;
